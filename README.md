@@ -1,60 +1,51 @@
-Make a language agnostic documentation generator in the style of jsdoc.
 
-Mainly for shell, because shdoc doesn't work all that well for me.
+# xdoc
 
-Make tags work everywhere, not just above functions.
+ A very quick and very dirty documentation tool a la `jsdoc` for shell scripts
 
-Implement the following tags (the `@` might change to something else)
+## About
 
-- @type {int|float|string|path|file|array|constant|global|export|function|void} name
-    - each type can also be its own tag, eg `@constant name`
-      instead of `@type {constant} name`
-- @name value
-- @arg {type} name
-- @err message
-- @return {type} value
-- @modifies {type} name
-- @imported description
-- @requires name
-- @ignore
+This tool was created as a way to add documentation to shell scripts without the 
+need for as many options as `shdoc` or `literate`. This tool scans for a few tags
+used to format the structure of the doc. Otherwise the rest of the content can be
+written in a limited version of markdown. The output is plain markdown that can 
+be used as a README.
 
-Structure documentation using the following tags. Structural tags are processed in
-the order they appear in the source code.
+## Usage
 
-- @introduction text
-- @section name
-- @description text
-  - can be used anywhere, not just atop functions
-- @example sample code
-- @important message
-- @reference [title|url]
-- @definition term definition
+`xdoc input.bash README.md`  
 
-```
-reference other functions / pages in the current docset
-@reference [title|internal_url]
-```
+## Options
 
-- @link
+Options for this script are the available tags, which include **@title**, **@brief**, **@description**
+**@install**, **@usage**, and **@options**.
 
-```
-@link [title|url]
-```
+Note the following limitations:  
+- **@title** and **@brief** must be one line. 
 
-- @table name
+-  **@description**, **@install**, **@usage**, and **@options** require multiline strings wrapped in 
+square brackets. 
 
-```
-@table test table
-Name|Amount|Value
-star,15,$450
-planet,8,$100
-asteroid,2,$700
-```
+- List items must have a blank line after each item or section of items
 
-Metadata can be added using the @meta tag followed by a key/value pair.
-No duplicate keys, only the first value is valid for two keys with the same name
+#### Description of options
 
-```
-@meta author|alvin charity
-@meta created|2023-04-21
-```
+**@title**
+- The title of your project, must be one line
+
+**@brief**
+- A short summary of your project, must be one line
+
+**@description**
+- A longer explanation of your project. 
+- Multiline must be wrapped in square brackets
+
+**@install**
+- Installation instructions
+- Multiline must be wrapped in square brackets
+
+**@options**
+- A list of available options
+- Multiline must be wrapped in square brackets
+
+
