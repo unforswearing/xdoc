@@ -1,0 +1,103 @@
+#!/bin/bash
+# @title xdoc
+# @brief A very quick and very dirty documentation tool a la `jsdoc` for shell scripts
+# @description [
+# This tool was created as a way to add documentation to shell scripts without the 
+# need for as many options as `shdoc` or `literate`. This tool scans for a few tags
+# used to format the structure of the doc. Otherwise the rest of the content can be
+# written in a limited version of markdown. The output is plain markdown that can 
+# be used as a README.
+# ]
+# @usage [
+# `xdoc input.bash README.md`  
+# ]
+# @options [
+# Options for this script are the available tags, which include **@title**, **@brief**, **@description**
+# **@install**, **@usage**, and **@options**.
+#
+# Note the following limitations:  
+# - **@title** and **@brief** must be one line. 
+#
+# -  **@description**, **@install**, **@usage**, and **@options** require multiline strings wrapped in 
+# square brackets. 
+#
+# - List items must have a blank line after each item or section of items
+#
+# #### Description of options
+#
+# **@title**
+# - The title of your project, must be one line
+#
+# **@brief**
+# - A short summary of your project, must be one line
+#
+# **@description**
+# - A longer explanation of your project. 
+# - Multiline must be wrapped in square brackets
+#
+# **@install**
+# - Installation instructions
+# - Multiline must be wrapped in square brackets
+#
+# **@options**
+# - A list of available options
+# - Multiline must be wrapped in square brackets
+#
+# ]
+
+script="${1}"
+output="${2}"
+
+echo > "${output}"
+documentation="$(grep -o '# @.*' "${script}")"
+
+:fmt.nl() { echo; }
+:fmt.dblnl() { echo "\n\n"; }
+:fmt.section() {
+  local name="${1}"
+  sed -n "/$name \[/,/\]/p" "${script}" | \
+    awk 'NR > 1' | \
+    sed '$d' | \
+    sed 's/# //;s/# $//;s/#$//'
+  :fmt.nl
+}
+
+printf "%s\n" "${documentation}" | while read token; do
+  if [[ $token =~ "@title " ]]; then 
+    {
+      header="$(echo $token | sed 's/@title //')"
+      echo -en "$header$(:fmt.dblnl)"
+    }>> "${output}";
+  elif [[ $token =~ "@brief " ]]; then
+    {
+      summary="$(echo $token | sed 's/@brief //')"
+      echo -en "$summary$(:fmt.dblnl)" | sed 's/#//g'
+    }>> "${output}";
+  elif [[ $token =~ "@repository " ]]; then 
+    {
+      repository="$(echo $token | sed 's/@repository //')"
+      echo -en "Repository: [$repository]($repository)" | sed 's/#//g'
+      echo
+    }>> "${output}";
+  elif [[ $token =~ "@description " ]]; then
+    {
+      echo -en "## About$(:fmt.dblnl)"
+      :fmt.section "@description"
+    }>> "${output}";
+  elif [[ $token =~ "@install " ]]; then
+    {
+      echo -en "## Installation$(:fmt.dblnl)"
+      :fmt.section "@install"
+    }>> "${output}";
+  elif [[ $token =~ "@usage " ]]; then
+    {
+      echo -en "## Usage$(:fmt.dblnl)"
+      :fmt.section "@usage"
+    }>> "${output}";
+  elif [[ $token =~ "@options " ]]; then
+    {
+      echo -en "## Options$(:fmt.dblnl)"
+      :fmt.section "@options"
+    }>> "${output}";
+  fi
+done
